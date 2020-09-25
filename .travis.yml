@@ -23,6 +23,7 @@ branches:
     - master
 
 gemfile:
+  - gemfiles/rails_4.2.gemfile
   - gemfiles/rails_5.0.gemfile
   - gemfiles/rails_5.1.gemfile
   - gemfiles/rails_5.2.gemfile
@@ -37,7 +38,10 @@ before_install:
   # https://github.com/rubygems/rubygems/issues/3036
   # https://github.com/rubygems/rubygems/issues/3036#issuecomment-566132226
   - yes | gem update --system
-  - gem install bundler
+  # Rails 4.2 doesn't support bundler 2.0, so we need to lock bundler to
+  # v1.17.3. This is just for Ruby 2.5 which ships with bundler 2.x on Travis
+  # CI while Ruby 2.6 does not.
+  - yes | rvm @global do gem install bundler -v 1.17.3 || true
 
 env:
   matrix:
@@ -46,14 +50,17 @@ env:
 
 matrix:
   fast_finish: true
+  allow_failures:
+    - gemfile: gemfiles/rails_4.2.gemfile
+      rvm: 2.5.6
   exclude:
     - gemfile: gemfiles/rails_6.0.gemfile
-      rvm: 2.3
+      rvm: 2.3.8
     - gemfile: gemfiles/rails_6.0.gemfile
-      rvm: 2.4
+      rvm: 2.4.7
 
 jobs:
   include:
     - stage: Lint
-      rvm: 2.6
+      rvm: 2.6.4
       script: bundle exec rake rubocop

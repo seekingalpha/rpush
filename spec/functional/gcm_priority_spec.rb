@@ -35,6 +35,6 @@ describe 'GCM priority' do
   end
 
   it 'does not add an error when receiving expected priority' do
-    expect(hydrated_notification.errors.messages[:priority]).to be_empty
+    expect(hydrated_notification.errors.messages[:priority]).to be_blank
   end
 end
