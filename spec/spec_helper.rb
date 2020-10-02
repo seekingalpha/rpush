@@ -44,6 +44,7 @@ RPUSH_CLIENT = Rpush.config.client
 
 path = File.join(File.dirname(__FILE__), 'support')
 TEST_CERT = File.read(File.join(path, 'cert_without_password.pem'))
+TEST_P8_KEY = File.read(File.join(path, 'apn_key.p8'))
 TEST_CERT_WITH_PASSWORD = File.read(File.join(path, 'cert_with_password.pem'))
 
 def after_example_cleanup
@@ -55,6 +56,10 @@ def after_example_cleanup
   end
   Rpush.plugins.values.each(&:unload)
   Rpush.instance_variable_set('@plugins', {})
+  Rpush.reflect do |on|
+    on.error do |error|
+    end
+  end
 end
 
 RSpec.configure do |config|
