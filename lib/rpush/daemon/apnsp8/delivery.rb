@@ -6,7 +6,7 @@ module Rpush
       HTTP2_HEADERS_KEY = 'headers'
 
       class Delivery < Rpush::Daemon::Delivery
-        RETRYABLE_CODES = [ 429, 500, 503, 504 ]
+        RETRYABLE_CODES = [ 429, 500, 503 ]
         ASYNC_REQUEST_TIMEOUT = 60
 
         def initialize(app, http2_client, token_provider, batch)
@@ -29,7 +29,7 @@ module Rpush
           mark_batch_retryable(Time.now + 10.seconds, error)
           @client.close
           raise
-        rescue Errno::ECONNREFUSED, SocketError, HTTP2::Error::StreamLimitExceeded => error
+        rescue Errno::ECONNREFUSED, Errno::ECONNRESET, SocketError, HTTP2::Error::StreamLimitExceeded => error
           # TODO restart connection when StreamLimitExceeded
           mark_batch_retryable(Time.now + 10.seconds, error)
           raise
@@ -164,12 +164,11 @@ module Rpush
         def close_stuck_streams
           now_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
-          @requests.each do |notification_id, (ts, request)|
+          @requests.each do |_notification_id, (ts, _request)|
             # Ruby Hash enumeration is ordered, so once fresh stream is met we can stop searching.
             break if now_ts - ts < ASYNC_REQUEST_TIMEOUT
 
-            request.emit(:close, { code: 504 })
-            @requests.delete notification_id
+            raise NetHttp2::AsyncRequestTimeout
           end
         end
 

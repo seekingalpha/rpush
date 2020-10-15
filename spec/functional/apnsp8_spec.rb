@@ -171,35 +171,6 @@ describe 'APNs P8 adapter' do
       end
     end
 
-    context 'when response returns 504 on request timeout' do
-      let(:fake_http_resp_headers) {
-        {
-          ":status" => "504",
-          "apns-id" => "C6D65840-5E3F-785A-4D91-B97D305C12F6"
-        }
-      }
-
-      it 'fails but retries delivery several times' do
-        notification = create_notification
-        expect do
-          Rpush.push
-          notification.reload
-        end.to change(notification, :retries)
-      end
-
-      it 'reflects :notification_id_will_retry' do
-        Rpush.reflect do |on|
-          on.notification_id_will_retry do |app, id, timer|
-            expect(app).to be_kind_of(Rpush::Client::Apnsp8::App)
-            expect(id).to eq 1
-          end
-        end
-
-        notification = create_notification
-        Rpush.push
-      end
-    end
-
     context 'when response returns 500 error for APNs maintenance' do
       let(:fake_http_resp_headers) {
         {
@@ -369,26 +340,6 @@ describe 'APNs P8 adapter' do
           notification.reload
         end.to change(notification, :retries).by(0)
            .and change(notification, :delivered).to(true)
-      end
-    end
-
-    context 'when timeout accours during preparation of async posts' do
-      before do
-        stub_const("Rpush::Daemon::Apnsp8::Delivery::ASYNC_REQUEST_TIMEOUT", 0.1)
-
-        allow(fake_client).to receive(:remote_settings).and_return({ settings_max_concurrent_streams: 1 })
-        allow(fake_client).to receive(:stream_count).and_return(1, 0)
-
-        expect(fake_client).to receive(:call_async).ordered { sleep(0.3); }
-        expect(fake_client).to receive(:call_async).ordered { 'ok' }
-      end
-
-      it 'closes request' do
-        2.times { create_notification }
-
-        expect(fake_http2_request).to receive(:emit).with(:close, { code: 504 })
-
-        Rpush.push
       end
     end
   end
