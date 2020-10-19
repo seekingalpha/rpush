@@ -28,10 +28,14 @@ module Rpush
       end
 
       def mark_retryable(notification, deliver_after)
+        mark_failed(notification, 429, 'Too Many Retries') if notification.retries > 10
+
         @mutex.synchronize do
           @retryable[deliver_after] ||= []
           @retryable[deliver_after] << notification
         end
+
+        deliver_after += (0..notification.retries).inject(:+) * 10
 
         Rpush::Daemon.store.mark_retryable(notification, deliver_after, persist: false)
       end

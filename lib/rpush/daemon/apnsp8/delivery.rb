@@ -26,12 +26,12 @@ module Rpush
           # Send all preprocessed requests at once
           @client.join(timeout: ASYNC_REQUEST_TIMEOUT)
         rescue NetHttp2::AsyncRequestTimeout => error
-          mark_batch_retryable(Time.now + 10.seconds, error)
+          mark_batch_retryable(Time.now, error)
           @client.close
           raise
         rescue Errno::ECONNREFUSED, Errno::ECONNRESET, SocketError, HTTP2::Error::StreamLimitExceeded => error
           # TODO restart connection when StreamLimitExceeded
-          mark_batch_retryable(Time.now + 10.seconds, error)
+          mark_batch_retryable(Time.now, error)
           raise
         rescue StandardError => error
           mark_batch_failed(error)
