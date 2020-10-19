@@ -1,6 +1,6 @@
 require 'functional_spec_helper'
 
-describe 'APNs http2 adapter' do
+describe 'APNs P8 adapter' do
   let(:fake_client) {
     double(
       prepare_request: fake_http2_request,
@@ -11,6 +11,8 @@ describe 'APNs http2 adapter' do
     )
   }
   let(:app) { create_app }
+  let(:fake_token_provider) { double }
+  let(:fake_p8_token) { 'eyJhbGciOiJFUzI1NiIsImtpZCI6IlVCNDBaWEtDRFoifQ.eyJpc3MiOiI2RjQ0Sko5U0RGIiwiaWF0IjoxNjAxNTQzOTU0fQ.lAl5CLa_VGX_TjhVZXGiIYnbylrhYMzlxURn5vAT7XWqu86lcA0qQBiF2_Ol3yUanU3pxXH9-ACDH6jNcS79pA' }
   let(:fake_device_token) { 'a' * 108 }
   let(:fake_http2_request) { double }
   let(:fake_http_resp_headers) {
@@ -35,11 +37,20 @@ describe 'APNs http2 adapter' do
     allow(fake_http2_request).
       to receive(:on).with(:close).
       and_yield
+    allow(Rpush::Daemon::Apnsp8::Token).
+      to receive(:new).with(app).
+      and_return(fake_token_provider)
+    allow(fake_token_provider).
+      to receive(:token).
+      and_return(fake_p8_token)
   end
 
   def create_app
-    app = Rpush::Apns2::App.new
-    app.certificate = TEST_CERT
+    app = Rpush::Apnsp8::App.new
+    app.apn_key = TEST_P8_KEY
+    app.apn_key_id = 'UB40ZXKCDZ'
+    app.team_id = '6F44JJ9SDF'
+    app.bundle_id = 'com.example.FakeApp'
     app.name = 'test'
     app.environment = 'development'
     app.save!
@@ -47,7 +58,7 @@ describe 'APNs http2 adapter' do
   end
 
   def create_notification
-    notification = Rpush::Apns2::Notification.new
+    notification = Rpush::Apnsp8::Notification.new
     notification.app = app
     notification.sound = 'default'
     notification.alert = 'test'
@@ -75,7 +86,14 @@ describe 'APNs http2 adapter' do
         :post,
         "/3/device/#{fake_device_token}",
         { body: "{\"aps\":{\"alert\":\"test\",\"sound\":\"default\",\"content-available\":1}}",
-          headers: {} }
+          headers: {
+            "content-type" => "application/json",
+            "apns-expiration" => "0",
+            "apns-priority" => "10",
+            "apns-topic" => "com.example.FakeApp",
+            "authorization" => "bearer #{fake_p8_token}"
+          }
+        }
       )
       .and_return(fake_http2_request)
 
@@ -104,7 +122,13 @@ describe 'APNs http2 adapter' do
           "/3/device/#{fake_device_token}",
           { body: "{\"aps\":{\"alert\":\"test\",\"sound\":\"default\","\
                   "\"content-available\":1},\"some_field\":\"some value\"}",
-            headers: { 'apns-topic' => bundle_id }
+            headers: {
+              "content-type" => "application/json",
+              "apns-expiration" => "0",
+              "apns-priority" => "10",
+              "apns-topic" => bundle_id,
+              "authorization" => "bearer #{fake_p8_token}"
+            }
           }
         ).and_return(fake_http2_request)
 
@@ -135,7 +159,7 @@ describe 'APNs http2 adapter' do
       it 'reflects :notification_id_failed' do
         Rpush.reflect do |on|
           on.notification_id_failed do |app, id, code, descr|
-            expect(app).to be_kind_of(Rpush::Client::Apns2::App)
+            expect(app).to be_kind_of(Rpush::Client::Apnsp8::App)
             expect(id).to eq 1
             expect(code).to eq 404
             expect(descr).to be_nil
@@ -166,7 +190,7 @@ describe 'APNs http2 adapter' do
       it 'reflects :notification_id_will_retry' do
         Rpush.reflect do |on|
           on.notification_id_will_retry do |app, id, timer|
-            expect(app).to be_kind_of(Rpush::Client::Apns2::App)
+            expect(app).to be_kind_of(Rpush::Client::Apnsp8::App)
             expect(id).to eq 1
           end
         end
@@ -199,7 +223,7 @@ describe 'APNs http2 adapter' do
       it 'reflects :notification_id_will_retry' do
         Rpush.reflect do |on|
           on.notification_id_will_retry do |app, id, timer|
-            expect(app).to be_kind_of(Rpush::Client::Apns2::App)
+            expect(app).to be_kind_of(Rpush::Client::Apnsp8::App)
             expect(id).to eq 1
             expect(timer).to be_kind_of(Time)
           end

@@ -7,7 +7,7 @@ module Rpush
 
       class Delivery < Rpush::Daemon::Delivery
         RETRYABLE_CODES = [ 429, 500, 503 ]
-        CLIENT_JOIN_TIMEOUT = 60
+        ASYNC_REQUEST_TIMEOUT = 60
 
         def initialize(app, http2_client, token_provider, batch)
           @app = app
@@ -15,6 +15,7 @@ module Rpush
           @batch = batch
           @first_push = true
           @token_provider = token_provider
+          @requests = {}
         end
 
         def perform
@@ -23,12 +24,12 @@ module Rpush
           end
 
           # Send all preprocessed requests at once
-          @client.join(timeout: CLIENT_JOIN_TIMEOUT)
+          @client.join(timeout: ASYNC_REQUEST_TIMEOUT)
         rescue NetHttp2::AsyncRequestTimeout => error
           mark_batch_retryable(Time.now + 10.seconds, error)
           @client.close
           raise
-        rescue Errno::ECONNREFUSED, SocketError, HTTP2::Error::StreamLimitExceeded => error
+        rescue Errno::ECONNREFUSED, Errno::ECONNRESET, SocketError, HTTP2::Error::StreamLimitExceeded => error
           # TODO restart connection when StreamLimitExceeded
           mark_batch_retryable(Time.now + 10.seconds, error)
           raise
@@ -63,6 +64,11 @@ module Rpush
 
           http_request.on(:close) { handle_response(notification, response) }
 
+          @requests[notification.id] = [
+            Process.clock_gettime(Process::CLOCK_MONOTONIC),
+            http_request
+          ]
+
           if @first_push
             @first_push = false
             @client.call_async(http_request)
@@ -73,6 +79,7 @@ module Rpush
 
         def delayed_push_async(http_request)
           until streams_available? do
+            close_stuck_streams
             sleep 0.001
           end
           @client.call_async(http_request)
@@ -106,6 +113,8 @@ module Rpush
             @batch.mark_failed(notification, response[:code], response[:failure_reason])
             failed_message_to_log(notification, response)
           end
+
+          @requests.delete notification.id
         end
 
         def ok(notification)
@@ -150,6 +159,17 @@ module Rpush
 
         def notification_data(notification)
           notification.data || {}
+        end
+
+        def close_stuck_streams
+          now_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+          @requests.each do |_notification_id, (ts, _request)|
+            # Ruby Hash enumeration is ordered, so once fresh stream is met we can stop searching.
+            break if now_ts - ts < ASYNC_REQUEST_TIMEOUT
+
+            raise NetHttp2::AsyncRequestTimeout
+          end
         end
 
         def retry_message_to_log(notification)
