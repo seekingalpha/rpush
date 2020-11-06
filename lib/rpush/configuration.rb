@@ -93,6 +93,10 @@ module Rpush
       initialize_client
     end
 
+    def redis_connection_pool=(size)
+      Modis.connection_pool_size = size if client == :redis
+    end
+
     def redis_options=(options)
       Modis.redis_options = options if client == :redis
     end
