@@ -69,12 +69,14 @@ module Rpush
             http_request
           ]
 
-          if @first_push
-            @first_push = false
-            @client.call_async(http_request)
-          else
-            delayed_push_async(http_request)
-          end
+          @client.call_async(http_request)
+
+          # if @first_push
+            # @first_push = false
+            # @client.call_async(http_request)
+          # else
+            # delayed_push_async(http_request)
+          # end
         end
 
         def delayed_push_async(http_request)
