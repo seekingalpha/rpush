@@ -29,12 +29,8 @@ module Rpush
           mark_batch_retryable(Time.now, error)
           @client.close
           raise
-        rescue Errno::ECONNREFUSED, Errno::ECONNRESET, SocketError, HTTP2::Error::StreamLimitExceeded => error
-          # TODO restart connection when StreamLimitExceeded
-          mark_batch_retryable(Time.now, error)
-          raise
         rescue StandardError => error
-          mark_batch_failed(error)
+          mark_batch_retryable(Time.now, error)
           raise
         ensure
           @batch.all_processed

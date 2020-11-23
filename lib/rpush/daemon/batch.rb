@@ -85,6 +85,8 @@ module Rpush
           @failed[key] = @notifications
         end
         each_notification do |notification|
+          next if notification.delivered
+
           Rpush::Daemon.store.mark_failed(notification, code, message, Time.now, persist: false)
         end
       end
