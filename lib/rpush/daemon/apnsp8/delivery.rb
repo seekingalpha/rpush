@@ -7,7 +7,8 @@ module Rpush
 
       class Delivery < Rpush::Daemon::Delivery
         RETRYABLE_CODES = [ 429, 500, 503 ]
-        ASYNC_REQUEST_TIMEOUT = 60
+        CLIENT_JOIN_TIMEOUT = 60
+        DEFAULT_MAX_CONCURRENT_STREAMS = 100
 
         def initialize(app, http2_client, token_provider, batch)
           @app = app
@@ -24,7 +25,7 @@ module Rpush
           end
 
           # Send all preprocessed requests at once
-          @client.join(timeout: ASYNC_REQUEST_TIMEOUT)
+          @client.join(timeout: CLIENT_JOIN_TIMEOUT)
         rescue NetHttp2::AsyncRequestTimeout => error
           mark_batch_retryable(Time.now, error)
           @client.close
@@ -88,7 +89,11 @@ module Rpush
         def remote_max_concurrent_streams
           # 0x7fffffff is the default value from http-2 gem (2^31)
           if @client.remote_settings[:settings_max_concurrent_streams] == 0x7fffffff
-            0
+            # Ideally we'd fall back to `#local_settings` here, but `NetHttp2::Client`
+            # doesn't expose that attr from the `HTTP2::Client` it wraps. Instead, we
+            # chose a hard-coded value matching the default local setting from the
+            # `HTTP2::Client` class
+            DEFAULT_MAX_CONCURRENT_STREAMS
           else
             @client.remote_settings[:settings_max_concurrent_streams]
           end
@@ -149,6 +154,7 @@ module Rpush
           headers['apns-priority'] = '10'
           headers['apns-topic'] = @app.bundle_id
           headers['authorization'] = "bearer #{jwt_token}"
+          headers['apns-push-type'] = 'background' if notification.content_available?
 
           headers.merge notification_data(notification)[HTTP2_HEADERS_KEY] || {}
         end
@@ -162,7 +168,7 @@ module Rpush
 
           @requests.each do |_notification_id, (ts, _request)|
             # Ruby Hash enumeration is ordered, so once fresh stream is met we can stop searching.
-            break if now_ts - ts < ASYNC_REQUEST_TIMEOUT
+            break if now_ts - ts < CLIENT_JOIN_TIMEOUT
 
             raise NetHttp2::AsyncRequestTimeout
           end

@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 2.3.0'
 
   s.post_install_message = <<~POST_INSTALL_MESSAGE
-    When upgrading, don't forget to run `bundle exec rpush init` to get all the latest migrations.
+    When upgrading Rpush, don't forget to run `bundle exec rpush init` to get all the latest migrations.
 
     For details on this specific release, refer to the CHANGELOG.md file.
     https://github.com/rpush/rpush/blob/master/CHANGELOG.md
@@ -35,10 +35,11 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'net-http-persistent'
   s.add_runtime_dependency 'net-http2', '~> 0.18', '>= 0.18.3'
   s.add_runtime_dependency 'jwt', '>= 1.5.6'
-  s.add_runtime_dependency 'activesupport', '>= 5.0'
+  s.add_runtime_dependency 'activesupport', '>= 5.2'
   s.add_runtime_dependency 'thor', ['>= 0.18.1', '< 2.0']
   s.add_runtime_dependency 'railties'
   s.add_runtime_dependency 'rainbow'
+  s.add_runtime_dependency 'webpush', '~> 1.0'
 
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec', '~> 3.4.0'
