@@ -10,6 +10,8 @@
 
 * Dropped support for Ruby 2.4, 2.5, 2.6 and Rails 5.2.
 
+* Support for Ruby 3.2 & 3.3 [\#679](https://github.com/rpush/rpush/pull/679) ([benlangfeld](https://github.com/benlangfeld))
+
 **Breaking:**
 
 * Drop support for Ruby 2.x [\#672](https://github.com/rpush/rpush/pull/672) ([benlangfeld](https://github.com/benlangfeld))
