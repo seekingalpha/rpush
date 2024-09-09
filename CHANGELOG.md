@@ -4,11 +4,11 @@
 
 **Merged pull requests:**
 
-* Support for FCMv1 [\#620](https://github.com/rpush/rpush/pull/620) ([mirkode](https://github.com/mirkode)), [\#660](https://github.com/rpush/rpush/pull/660) ([AnilRh](https://github.com/AnilRh)) and [\#673](https://github.com/rpush/rpush/pull/673) ([SixiS](https://github.com/SixiS), [Henridv](https://github.com/Henridv) & [benlangfeld](https://github.com/benlangfeld))
+[Full Changelog](https://github.com/rpush/rpush/compare/v9.0.0...HEAD)
 
-**Breaking:**
+## [v9.0.0](https://github.com/rpush/rpush/tree/v9.0.0) (2024-09-09)
 
-* Dropped support for Ruby 2.4, 2.5, 2.6 and Rails 5.2.
+**Merged pull requests:**
 
 * Support for Ruby 3.2 & 3.3 [\#679](https://github.com/rpush/rpush/pull/679) ([benlangfeld](https://github.com/benlangfeld))
 
@@ -16,7 +16,7 @@
 
 * Drop support for Ruby 2.x [\#672](https://github.com/rpush/rpush/pull/672) ([benlangfeld](https://github.com/benlangfeld))
 
-[Full Changelog](https://github.com/rpush/rpush/compare/v8.0.0...HEAD)
+[Full Changelog](https://github.com/rpush/rpush/compare/v8.0.0...v9.0.0)
 
 ## [v7.0.1](https://github.com/rpush/rpush/tree/v8.0.0) (2024-09-06)
 
