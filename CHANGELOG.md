@@ -5,6 +5,7 @@
 **Merged pull requests:**
 
 * Support for Rails 7.1 [\#675](https://github.com/rpush/rpush/pull/675) ([benlangfeld](https://github.com/benlangfeld))
+* Support for Rails 7.2 [\#706](https://github.com/rpush/rpush/pull/706) ([benlangfeld](https://github.com/benlangfeld))
 * Enable running tests on sqlite3 [\#705](https://github.com/rpush/rpush/pull/705) ([benlangfeld](https://github.com/benlangfeld))
 
 [Full Changelog](https://github.com/rpush/rpush/compare/v9.0.0...HEAD)
