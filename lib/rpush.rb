@@ -17,10 +17,10 @@ require 'rpush/configuration'
 require 'rpush/reflection_collection'
 require 'rpush/reflection_public_methods'
 require 'rpush/reflectable'
+require 'rpush/proxy'
 require 'rpush/plugin'
 require 'rpush/embed'
 require 'rpush/push'
-require 'rpush/apns_feedback'
 
 module Rpush
   def self.jruby?

@@ -17,13 +17,6 @@ require 'debug'
 require 'timecop'
 require 'activerecord-jdbc-adapter' if defined? JRUBY_VERSION
 
-require 'rpush'
-require 'rpush/daemon'
-require 'rpush/client/redis'
-require 'rpush/client/active_record'
-require 'rpush/daemon/store/active_record'
-require 'rpush/daemon/store/redis'
-
 def active_record?
   client == :active_record
 end
@@ -31,6 +24,22 @@ end
 def redis?
   client == :redis
 end
+
+if active_record?
+  require 'logger'
+  require 'active_record'
+  if ActiveRecord::Base.respond_to?(:default_column_serializer)
+    # New default in Rails 7.1: https://github.com/rails/rails/pull/47422
+    ActiveRecord::Base.default_column_serializer = nil
+  end
+end
+
+require 'rpush'
+require 'rpush/daemon'
+require 'rpush/client/redis'
+require 'rpush/client/active_record'
+require 'rpush/daemon/store/active_record'
+require 'rpush/daemon/store/redis'
 
 require 'support/active_record_setup' if active_record?
 
@@ -59,10 +68,8 @@ def after_example_cleanup
   end
   Rpush.plugins.values.each(&:unload)
   Rpush.instance_variable_set('@plugins', {})
-  Rpush.reflect do |on|
-    on.error do |error|
-    end
-  end
+  Rpush.reflection_stack.clear
+  Rpush.reflection_stack.push(Rpush::ReflectionCollection.new)
 end
 
 RSpec.configure do |config|
