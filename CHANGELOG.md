@@ -4,6 +4,8 @@
 
 * Support for proxying HTTP requests [\#728](https://github.com/rpush/rpush/pull/728) ([jaspreet-3911](https://github.com/jaspreet-3911))
 * Fix active record logger dependency for older rails versions that was breaking the build [\#731](https://github.com/rpush/rpush/pull/731) ([SixiS](https://github.com/sixis))
+* Specify ostruct dependency ([not bundled with ruby since 3.5](https://github.com/ruby/ruby/blob/4eaa245fccd3dd9a61fe1b5f114a6fb47907640a/lib/bundled_gems.rb#L18)) [\#740](https://github.com/rpush/rpush/pull/740) ([grekko-headacy](https://github.com/grekko-headacy))
+* Fix APNs P8 HTTP2 error recovery [\#734](https://github.com/rpush/rpush/pull/734) ([kjvarga](https://github.com/kjvarga)) ([SixiS](https://github.com/SixiS))
 
 [Full Changelog](https://github.com/rpush/rpush/compare/v9.2.0...HEAD)
 
@@ -32,7 +34,7 @@
 **Breaking:**
 
 * Removed legacy APNSv1 implementation (Apple binary protocol) since this was shut down in 2021. [\#680](https://github.com/rpush/rpush/pull/680) ([benlangfeld](https://github.com/benlangfeld))
-* Removed legacy GCM implementation since this was shut down by Google in August 2024 and replaced by FCM (supported in RPush 8.0.0) [\#688](https://github.com/rpush/rpush/pull/688) ([benlangfeld](https://github.com/benlangfeld))
+* Removed legacy GCM implementation since this was shut down by Google in August 2024 and replaced by FCM (supported in RPush 8.0.0) [\#688](https://github.com/rpush/rpush/pull/688) ([benlangfeld](https://github.com/benlangfeld)). **Important** You must remove all references to GCM before moving to v9. This includes both notifications and apps, see [#718](https://github.com/rpush/rpush/issues/718) for details.
 * Drop support for Ruby 2.x [\#672](https://github.com/rpush/rpush/pull/672) ([benlangfeld](https://github.com/benlangfeld))
 
 [Full Changelog](https://github.com/rpush/rpush/compare/v8.0.0...v9.0.0)

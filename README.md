@@ -298,7 +298,7 @@ according to the spec, can be used by push service providers to contact you in
 case of problems) in the `certificates` field of the Rpush Application record:
 
 ```ruby
-vapid_keypair = Webpush.generate_key.to_hash
+vapid_keypair = WebPush.generate_key.to_hash
 app = Rpush::Webpush::App.new
 app.name = 'webpush'
 app.certificate = vapid_keypair.merge(subject: 'mailto:user@example.org').to_json
@@ -322,6 +322,7 @@ In order to send the same message to multiple devices, create one
 `Notification` per device, as passing multiple subscriptions at once as
 `registration_ids` is not supported.
 
+For more information on Web Push, see the [pushpad/web-push](https://github.com/pushpad/web-push) documentation.
 
 ### Running Rpush
 
