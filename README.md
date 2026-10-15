@@ -180,6 +180,8 @@ n.data = {}.transform_values(&:to_s) # All values going in here have to be strin
 n.save!
 ```
 
+`device_token` can be a registration token or a [Firebase Installation ID](https://firebase.google.com/docs/cloud-messaging/manage-tokens) (FID). Rpush sends a value of 22 characters or fewer in the `fid` field, and a longer value in the `token` field.
+
 ##### Cloud Messaging API (Legacy)
 
 **Note:** Deprecated on 2023/6/20 and scheduled to be disabled on 2024/6/20.

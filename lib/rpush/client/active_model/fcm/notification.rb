@@ -6,6 +6,7 @@ module Rpush
           FCM_PRIORITY_HIGH = Rpush::Client::ActiveModel::Apns::Notification::APNS_PRIORITY_IMMEDIATE
           FCM_PRIORITY_NORMAL = Rpush::Client::ActiveModel::Apns::Notification::APNS_PRIORITY_CONSERVE_POWER
           FCM_PRIORITIES = [FCM_PRIORITY_HIGH, FCM_PRIORITY_NORMAL]
+          FID_LENGTH = 22
 
           ROOT_NOTIFICATION_KEYS = %w[title body image].freeze
           ANDROID_NOTIFICATION_KEYS = %w[icon tag color click_action body_loc_key body_loc_args title_loc_key
@@ -52,9 +53,17 @@ module Rpush
             json = {
               'data' => data,
               'android' => android_config,
-              'apns' => apns_config,
-              'token' => device_token
+              'apns' => apns_config
             }
+
+            # FCM HTTP v1 deprecated `token` in favour of `fid` (Firebase Installation ID).
+            # An FID has 22 characters, a registration token is much longer. The Firebase
+            # Android SDK uses the same length check (firebase-messaging Store.Token#isFid).
+            if device_token && device_token.length <= FID_LENGTH
+              json['fid'] = device_token
+            else
+              json['token'] = device_token
+            end
 
             json['notification'] = root_notification if notification
             { 'message' => json }
