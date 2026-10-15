@@ -89,4 +89,27 @@ shared_examples 'Rpush::Client::Fcm::Notification' do
   it 'fails when trying to set the dry_run option' do
     expect { notification.dry_run = true }.to raise_error(ArgumentError)
   end
+
+  describe 'device identifier' do
+    let(:fid) { 'cR_fx6xHT5mt8xTbQXFwKu' }
+    let(:registration_token) { "#{fid}:APA91bHPRgkF3JUikC4ENAHEeMrd41Zxv3hVZjC9KtT8OvPVGJ-hQMRKRrZuJAEcl7B338qju59zJMjw2DELjzEvxwYv7hH5Ynpc1ODQ0aT4U4OFEeco8ohsN5PjL1iC2dNtk2BAokeMCg2ZXKqpc8FXKmhX94kIxQ" }
+
+    it 'sends a registration token in the token field' do
+      notification.device_token = registration_token
+      expect(notification.as_json['message']['token']).to eq(registration_token)
+      expect(notification.as_json['message']).not_to have_key('fid')
+    end
+
+    it 'sends an FID in the fid field' do
+      notification.device_token = fid
+      expect(notification.as_json['message']['fid']).to eq(fid)
+      expect(notification.as_json['message']).not_to have_key('token')
+    end
+
+    it 'sends a 23 character device token in the token field' do
+      notification.device_token = "#{fid}a"
+      expect(notification.as_json['message']['token']).to eq("#{fid}a")
+      expect(notification.as_json['message']).not_to have_key('fid')
+    end
+  end
 end
